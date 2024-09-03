@@ -1,3 +1,4 @@
+import time
 import pytest
 from selenium import webdriver
 from pages.naver_pages import NaverMainPage, NaverNewsPage, NaverSportsPage
@@ -18,13 +19,23 @@ def setup(request):
 
 
 @pytest.mark.usefixtures("setup")
-#클래스 내의 모든 테스트 메서드에서 setup이 적용된 상태로 테스트가 실행
+# 클래스 내의 모든 테스트 메서드에서 setup이 적용된 상태로 테스트가 실행
 class TestNaverPages:
 
     def test_naver_main_page(self):
         main_page = NaverMainPage(self.driver)
         main_page.load()
         assert main_page.is_loaded()
+
+    def test_click_cafe_icon(self):
+        main_page = NaverMainPage(self.driver)
+        main_page.load()
+
+        assert main_page.is_cafe_icon_present(), "Cafe icon should be present on the main page."
+        main_page.click_cafe_icon()
+
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        assert main_page.is_cafe_page_loaded(), "Should navigate to the Naver Cafe page."
 
     def test_naver_news_page(self):
         news_page = NaverNewsPage(self.driver)
@@ -35,3 +46,18 @@ class TestNaverPages:
         sports_page = NaverSportsPage(self.driver)
         sports_page.load()
         assert sports_page.is_loaded()
+
+    def test_click_cafe_town_menu(self):
+        main_page = NaverMainPage(self.driver)
+        main_page.load()
+
+        assert main_page.is_cafe_icon_present(), "Cafe icon should be present on the main page."
+        main_page.click_cafe_icon()
+
+        # BasePage.switch_to_window(self, 1)
+        self.driver.switch_to.window(self.driver.window_handles[-1])
+        main_page.click_cafe_town_menu(), "Should navigate to the Naver Cafe page."
+        self.driver.switch_to.window(self.driver.window_handles[-1])
+
+        assert main_page.is_cafe_town_page_loaded(), 'Should town page'
+        time.sleep(3)
