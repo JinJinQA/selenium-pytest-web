@@ -54,10 +54,25 @@ class TestNaverPages:
         assert main_page.is_cafe_icon_present(), "Cafe icon should be present on the main page."
         main_page.click_cafe_icon()
 
-        # BasePage.switch_to_window(self, 1)
         self.driver.switch_to.window(self.driver.window_handles[-1])
         main_page.click_cafe_town_menu(), "Should navigate to the Naver Cafe page."
         self.driver.switch_to.window(self.driver.window_handles[-1])
 
         assert main_page.is_cafe_town_page_loaded(), 'Should town page'
         time.sleep(3)
+
+
+    def test_town_tab_menu(self):
+        main_page = NaverMainPage(self.driver)
+        main_page.load()
+
+        assert main_page.is_cafe_icon_present(), "Cafe icon should be present on the main page."
+        main_page.click_cafe_icon()
+
+        self.driver.switch_to.window(self.driver.window_handles[-1])
+        main_page.click_cafe_town_menu(), "Should navigate to the Naver Cafe page."
+        self.driver.switch_to.window(self.driver.window_handles[-1])
+
+        assert main_page.is_cafe_town_page_loaded(), 'Should town page'
+
+        main_page.click_cafe_town_tab_menu_present()
