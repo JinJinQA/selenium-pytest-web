@@ -1,129 +1,111 @@
 import time
-
-from selenium.webdriver.common.selenium_manager import logger
+import logging
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
-
-from selenium.common import TimeoutException
-from selenium.webdriver.support.wait import WebDriverWait
-
 from .base_page import BasePage
-from selenium.webdriver.common.by import By
 
+# logger 설정
+logger = logging.getLogger(__name__)
 
 class NaverMainPage(BasePage):
     URL = "https://www.naver.com"
 
     def load(self):
+        """네이버 메인 페이지를 로드합니다."""
+        logger.info("Loading Naver main page.")
         self.driver.get(self.URL)
         self.wait_for_element(By.CSS_SELECTOR, "input#query")
         return self
 
     def is_loaded(self):
+        """네이버 메인 페이지가 로드되었는지 확인합니다."""
         return "NAVER" in self.get_page_title()
+
+    def is_element_present(self, by, locator):
+        """지정한 요소가 페이지에 있는지 확인합니다."""
+        try:
+            self.wait_for_element(by, locator)
+            return True
+        except TimeoutException:
+            logger.warning(f"Element with locator {locator} not found on the page.")
+            return False
+
+    def click_element(self, by, locator):
+        """지정한 요소를 클릭합니다."""
+        if self.is_element_present(by, locator):
+            element = self.driver.find_element(by, locator)
+            element.click()
+        else:
+            raise Exception(f"Element with locator {locator} is not present on the page.")
 
     def is_cafe_icon_present(self):
         """네이버 메인 페이지에 카페 아이콘이 있는지 확인합니다."""
-        try:
-            self.wait_for_element(By.XPATH, '//span[@class="service_icon type_cafe"]')
-            return True
-        except TimeoutException:
-            print('is_cafe_icon_present timeout')
-            return False
-
-    def is_cafe_town_menu_present(self):
-        """네이버 카페 페이지에 이웃 메뉴가 있는지 확인합니다."""
-        try:
-            self.wait_for_element(By.XPATH, '//*[@id="gnbMenu"]/a[2]')
-            return True
-        except TimeoutException:
-            print('is_cafe_town_menu_present timeout')
-            return False
+        return self.is_element_present(By.XPATH, '//span[@class="service_icon type_cafe"]')
 
     def click_cafe_icon(self):
-        """네이버 메인 페이지에서 카페 아이콘을 클릭합니다."""
-        if self.is_cafe_icon_present():
-            cafe_icon = self.driver.find_element(By.XPATH, '//span[@class="service_icon type_cafe"]')
-            cafe_icon.click()
-        else:
-            raise Exception("Cafe icon is not present on the page.")
+        """카페 아이콘을 클릭합니다."""
+        self.click_element(By.XPATH, '//span[@class="service_icon type_cafe"]')
 
     def is_cafe_page_loaded(self):
-        # """카페 페이지로 이동했는지 확인합니다."""
+        """카페 페이지로 이동했는지 확인합니다."""
         return WebDriverWait(self.driver, 10).until(EC.url_contains("https://section.cafe.naver.com/ca-fe/home"))
 
-    def click_cafe_town_menu(self):
-            """네이버 메인 페이지에서 카페 아이콘을 클릭합니다."""
-            if self.is_cafe_town_menu_present():
-                cafe_town_icon = self.driver.find_element(By.XPATH, '//*[@id="gnbMenu"]/a[2]')
-                cafe_town_icon.click()
-            else:
-                raise Exception("Cafe icon is not present on the page.")
+    def is_cafe_town_menu_present(self):
+        """카페 타운 메뉴가 있는지 확인합니다."""
+        return self.is_element_present(By.XPATH, '//*[@id="gnbMenu"]/a[2]')
 
+    def click_cafe_town_menu(self):
+        """카페 타운 메뉴를 클릭합니다."""
+        self.click_element(By.XPATH, '//*[@id="gnbMenu"]/a[2]')
 
     def is_cafe_town_page_loaded(self):
-        print("카페 이웃 페이지로 이동했는지 확인합니다.")
+        """카페 이웃 페이지로 이동했는지 확인합니다."""
+        logger.info("Checking if the cafe town page is loaded.")
         return WebDriverWait(self.driver, 10).until(EC.url_contains("cafe.naver.com/ca-fe/home/town/talks"))
 
-    def click_cafe_town_tab_menu_present(self):
-        # 탭의 존재 여부를 확인
-        wait = WebDriverWait(self.driver, 10)
-        tab_element = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="category_flicker"]')))
-
+    def click_cafe_town_tab_menu(self):
+        """카페 타운 탭 메뉴를 클릭하고 예상되는 메뉴를 확인합니다."""
         try:
-            if tab_element:
-                menu_elements = wait.until(
-                    EC.presence_of_all_elements_located((By.XPATH, '//*[@id="category_flicker"]/button')))
+            tab_element = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="category_flicker"]'))
+            )
+            menu_elements = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_all_elements_located((By.XPATH, '//*[@id="category_flicker"]/button'))
+            )
 
-                # 예상되는 메뉴 텍스트 리스트
-                expected_texts = [
-                    "전체",
-                    "질문",
-                    "동네생활정보",
-                    "맛집,카페",
-                    "일상",
-                    "찾습니다",
-                    "건강,운동",
-                    "육아,교육"
-                ]
+            expected_texts = [
+                "전체", "질문", "동네생활정보", "맛집,카페", "일상", "찾습니다", "건강,운동", "육아,교육"
+            ]
+            for index, menu_element in enumerate(menu_elements):
+                actual_text = menu_element.text.strip()
+                expected_text = expected_texts[index]
 
-                # 각 메뉴 텍스트 확인
-                all_menus_match = True  # 일치 여부를 추적하는 변수
-
-                for index, menu_element in enumerate(menu_elements):
-                    actual_text = menu_element.text.strip()  # 실제 텍스트
-                    expected_text = expected_texts[index]  # 예상 텍스트
-
-                    if actual_text == expected_text:
-                        # time.sleep(1)
-                        menu_element.click()
-                        time.sleep(1)
-                        print(f"Menu {index + 1} matches: {actual_text}")
-                    else:
-                        print(f"Menu {index + 1} does not match. Found: {actual_text}, Expected: {expected_text}")
-                        all_menus_match = False
-
-                if all_menus_match:
-                    print("All menu texts match the expected values.")
+                if actual_text == expected_text:
+                    menu_element.click()
+                    time.sleep(1)
+                    logger.info(f"Menu {index + 1} matches: {actual_text}")
                 else:
-                    print("Some menu texts do not match the expected values.")
+                    logger.warning(f"Menu {index + 1} mismatch. Found: {actual_text}, Expected: {expected_text}")
         except Exception as e:
-            raise Exception(e)
+            logger.error(f"Error while interacting with the cafe town tab menu: {e}")
+            raise
         finally:
-            # 드라이버 종료
-            print('finally')
+            logger.info("Cafe town tab menu interaction completed.")
 
 
 class NaverNewsPage(BasePage):
     URL = "https://news.naver.com"
 
     def load(self):
+        """네이버 뉴스 페이지를 로드합니다."""
+        logger.info("Loading Naver news page.")
         self.driver.get(self.URL)
         return self
 
     def is_loaded(self):
+        """네이버 뉴스 페이지가 로드되었는지 확인합니다."""
         return "네이버 뉴스" in self.get_page_title()
 
 
@@ -131,8 +113,11 @@ class NaverSportsPage(BasePage):
     URL = "https://sports.news.naver.com"
 
     def load(self):
+        """네이버 스포츠 페이지를 로드합니다."""
+        logger.info("Loading Naver sports page.")
         self.driver.get(self.URL)
         return self
 
     def is_loaded(self):
+        """네이버 스포츠 페이지가 로드되었는지 확인합니다."""
         return "네이버 스포츠" in self.get_page_title()
