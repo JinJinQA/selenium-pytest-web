@@ -1,0 +1,1 @@
+shortcut_email = '<li class="shortcut_item"><a href="https://mail.naver.com" class="link_service" target="_blank"><span class="service_icon type_mail"></span><span class="service_name">메일</span></a></li>'

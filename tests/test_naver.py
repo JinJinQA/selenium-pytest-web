@@ -28,6 +28,16 @@ def setup(request):
 # 클래스 내의 모든 테스트 메서드에서 setup이 적용된 상태로 테스트가 실행
 class TestNaverPages:
 
+    def test_naver_news_page(self):
+        news_page = NaverNewsPage(self.driver)
+        news_page.load()
+        assert news_page.is_loaded()
+
+    def test_naver_sports_page(self):
+        sports_page = NaverSportsPage(self.driver)
+        sports_page.load()
+        assert sports_page.is_loaded()
+
     @allure.story("Naver Main Page")
     def test_naver_main_page(self):
         main_page = NaverMainPage(self.driver)
@@ -44,15 +54,7 @@ class TestNaverPages:
         self.driver.switch_to.window(self.driver.window_handles[1])
         assert main_page.is_cafe_page_loaded(), "Should navigate to the Naver Cafe page."
 
-    def test_naver_news_page(self):
-        news_page = NaverNewsPage(self.driver)
-        news_page.load()
-        assert news_page.is_loaded()
 
-    def test_naver_sports_page(self):
-        sports_page = NaverSportsPage(self.driver)
-        sports_page.load()
-        assert sports_page.is_loaded()
 
     def test_click_cafe_town_menu(self):
         main_page = NaverMainPage(self.driver)
