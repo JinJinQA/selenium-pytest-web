@@ -83,3 +83,4 @@ class TestNaverPages:
         assert main_page.is_cafe_town_page_loaded(), 'Should town page'
 
         main_page.click_cafe_town_tab_menu()
+
