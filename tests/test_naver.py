@@ -1,9 +1,15 @@
 import time
+
+import allure
 import pytest
 from selenium import webdriver
-from pages.naver_pages import NaverMainPage, NaverNewsPage, NaverSportsPage
+
+from pages.naver_pages import NaverMainPage
+from pages.naver_pages import NaverNewsPage
+from pages.naver_pages import NaverSportsPage
 
 
+# @allure.title("[MainPage] 테스트 시작")
 @pytest.fixture(scope="class")
 # setup 함수를 테스트 클래스 단위로 한 번만 실행
 def setup(request):
@@ -22,6 +28,7 @@ def setup(request):
 # 클래스 내의 모든 테스트 메서드에서 setup이 적용된 상태로 테스트가 실행
 class TestNaverPages:
 
+    @allure.story("Naver Main Page")
     def test_naver_main_page(self):
         main_page = NaverMainPage(self.driver)
         main_page.load()
